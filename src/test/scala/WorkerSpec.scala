@@ -3,7 +3,9 @@ import org.specs.Specification
 import org.specs.mock.Mockito
 import com.protose.resque._
 import com.protose.resque.Machine._
+import com.protose.resque.FancySeq._
 import com.redis.Redis
+import java.util.Date
 
 object WorkerSpec extends Specification with Mockito {
     val redis  = mock[Redis]
@@ -12,6 +14,17 @@ object WorkerSpec extends Specification with Mockito {
     "it has a string representation" in {
         val expectedId = hostname + ":" + pid + ":" + "someAwesomeQueue,someOtherAwesomeQueue"
         worker.id must_== expectedId
+    }
+
+    "starting a worker" in {
+        val startKey = List("worker", worker.id, "started").join(":")
+        val date     = new Date().toString
+        redis.set(startKey, date) returns true
+        worker.start
+
+        "informs redis that work has started" in {
+            redis.set(startKey, date) was called
+        }
     }
 }
 

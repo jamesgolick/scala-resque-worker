@@ -1,6 +1,12 @@
 package com.protose.resque
 import com.twitter.json.Json
 
+object Job {
+    def apply(worker: Worker, queue: String, payload: String): Job = {
+        Job(worker, queue, payload, Performable)
+    }
+}
+
 case class Job(worker: Worker, queue: String,
                payload: String, performerFinder: { 
                    def apply(s: String): Performable }) {

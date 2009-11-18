@@ -5,11 +5,11 @@ object FancySeq {
 }
 
 class FancySeq[A](set: Seq[A]) {
-    def join = {
+    def join: String = {
         set.foldLeft("") { (joined, str) => joined + str }
     }
 
-    def join(delimiter: String) = {
+    def join(delimiter: String): String = {
         set.slice(1, set.length).foldLeft(set.first.toString) { (joined, str) => 
             joined + delimiter + str
         }

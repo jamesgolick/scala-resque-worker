@@ -9,9 +9,9 @@ import java.util.Date
 object ResqueSpec extends Specification with Mockito {
     val redis      = mock[Redis]
     val jobFactory = mock[JobFactory]
-    val worker     = new Worker(redis, List("some queue"))
     val job        = Job(worker, "some_queue", "the payload")
     val resque     = new Resque(redis, jobFactory)
+    val worker     = new Worker(resque, List("some queue"))
     val startKey   = List("resque", "worker", worker.id, "started").join(":")
 
     "reserving a job" in {

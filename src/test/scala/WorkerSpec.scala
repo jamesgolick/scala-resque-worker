@@ -8,8 +8,8 @@ import com.redis.Redis
 import java.util.Date
 
 object WorkerSpec extends Specification with Mockito {
-    val redis    = mock[Redis]
-    val worker   = new Worker(redis, List("someAwesomeQueue", "someOtherAwesomeQueue"))
+    val resque   = mock[Resque]
+    val worker   = new Worker(resque, List("someAwesomeQueue", "someOtherAwesomeQueue"))
     val startKey = List("resque", "worker", worker.id, "started").join(":")
 
     "it has a string representation" in {
@@ -18,31 +18,18 @@ object WorkerSpec extends Specification with Mockito {
     }
 
     "starting a worker" in {
-        val date     = new Date().toString
-        redis.set(startKey, date) returns true
-        redis.setAdd("resque:workers", worker.id) returns true
         worker.start
 
-        "adds the worker to the workers set" in {
-            redis.setAdd("resque:workers", worker.id) was called
-        }
-
-        "informs redis that work has started" in {
-            redis.set(startKey, date) was called
+        "registers the worker with resque" in {
+            resque.register(worker) was called
         }
     }
 
     "stopping a worker" in {
-        redis.delete(startKey) returns true
-        redis.setDelete("resque:workers", worker.id) returns true
         worker.stop
 
-        "removes the worker from the workers set" in {
-            redis.setDelete("resque:workers", worker.id) was called
-        }
-
-        "deletes the started time" in {
-            redis.delete(startKey) was called
+        "unregisters the worker" in {
+            resque.unregister(worker) was called
         }
     }
 }

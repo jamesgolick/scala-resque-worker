@@ -2,7 +2,7 @@ package com.protose.resque
 import com.redis.Redis
 import FancySeq._
 
-class Queue(val redis: Redis, val jobFactory: JobFactory) {
+class Resque(val redis: Redis, val jobFactory: JobFactory) {
     def reserve(worker: Worker, name: String): Job = {
         jobFactory(worker, name, pop(name))
     }

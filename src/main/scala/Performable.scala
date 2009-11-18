@@ -8,7 +8,7 @@ object Performable {
 abstract class Performable(val name: String) {
     Performable.performables += Tuple(name, this)
 
-    def perform(args: Map[String, String]): Unit
+    def perform(args: List[String]): Unit
 }
 
 // vim: set ts=4 sw=4 et:

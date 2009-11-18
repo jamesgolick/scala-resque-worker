@@ -4,7 +4,7 @@ import com.protose.resque._
 
 object PerformableSpec extends Specification {
     object someBackgroundJob extends Performable("SomeBackgroundJob") {
-        def perform(args: Map[String, String]) = {}
+        def perform(args: List[String]) = {}
     }
 
     "has a convenience method for getting performables" in {

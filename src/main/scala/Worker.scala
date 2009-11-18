@@ -15,7 +15,12 @@ class Worker(resque: Resque, queues: List[String]) {
     }
 
     def workNextJob = {
-        nextJob.get.perform
+        val job = nextJob.get
+        try {
+            job.perform
+        } catch {
+            case exception: Throwable => resque.failure(job, exception)
+        }
     }
 
     protected def nextJob = {

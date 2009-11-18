@@ -12,6 +12,8 @@ class Resque(val redis: Redis, val jobFactory: JobFactory) {
         }
     }
 
+    def failure(job: Job, exception: Throwable) = {}
+
     def register(worker: Worker): Unit = {
         addToWorkersSet(worker)
         setStartedTime(worker)

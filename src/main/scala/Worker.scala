@@ -15,7 +15,7 @@ class Worker(resque: Resque, queues: List[String]) {
     }
 
     def workNextJob = {
-        nextJob.perform
+        nextJob.get.perform
     }
 
     protected def nextJob = {

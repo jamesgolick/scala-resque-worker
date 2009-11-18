@@ -36,7 +36,7 @@ object WorkerSpec extends Specification with Mockito {
     }
 
     "working off the next job" in {
-        resque.reserve(worker, "someAwesomeQueue") returns job
+        resque.reserve(worker, "someAwesomeQueue") returns Some(job)
         worker.workNextJob
 
         "gets the next job from the queue" in {

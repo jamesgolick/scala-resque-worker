@@ -5,6 +5,7 @@ import com.protose.resque._
 import com.redis.Redis
 import FancySeq._
 import java.util.Date
+import java.lang.NullPointerException
 
 object ResqueSpec extends Specification with Mockito {
     val redis      = mock[Redis]
@@ -15,17 +16,28 @@ object ResqueSpec extends Specification with Mockito {
     val startKey   = List("resque", "worker", worker.id, "started").join(":")
 
     "reserving a job" in {
-        redis.popHead("resque:queue:some_queue") returns "the payload"
-        jobFactory.apply(worker, "some_queue", "the payload") returns job
-        val returnVal = resque.reserve(worker, "some_queue")
+        "when there is a job" in {
+            redis.popHead("resque:queue:some_queue") returns "the payload"
+            jobFactory.apply(worker, "some_queue", "the payload") returns job
+            val returnVal = resque.reserve(worker, "some_queue").get
 
-        "fetches the next payload from the queue" in {
-            redis.popHead("resque:queue:some_queue") was called
+            "fetches the next payload from the queue" in {
+                redis.popHead("resque:queue:some_queue") was called
+            }
+
+            "returns the job created with the payload" in {
+                jobFactory.apply(worker, "some_queue", "the payload") was called
+                returnVal must_== job
+            }
         }
 
-        "returns the job created with the payload" in {
-            jobFactory.apply(worker, "some_queue", "the payload") was called
-            returnVal must_== job
+        "when there is no job" in {
+            redis.popHead("resque:queue:some_queue") throws new NullPointerException
+            val returnVal = resque.reserve(worker, "some_queue")
+
+            "returns None" in {
+                returnVal must_== None
+            }
         }
     }
 

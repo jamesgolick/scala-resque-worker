@@ -4,8 +4,12 @@ import FancySeq._
 import java.util.Date
 
 class Resque(val redis: Redis, val jobFactory: JobFactory) {
-    def reserve(worker: Worker, name: String): Job = {
-        jobFactory(worker, name, pop(name))
+    def reserve(worker: Worker, name: String): Option[Job] = {
+        try {
+            Some(jobFactory(worker, name, pop(name)))
+        } catch {
+            case e: NullPointerException => return None
+        }
     }
 
     def register(worker: Worker): Unit = {

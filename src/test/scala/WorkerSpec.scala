@@ -20,7 +20,12 @@ object WorkerSpec extends Specification with Mockito {
         val startKey = List("worker", worker.id, "started").join(":")
         val date     = new Date().toString
         redis.set(startKey, date) returns true
+        redis.setAdd("workers", worker.id) returns true
         worker.start
+
+        "adds the worker to the workers set" in {
+            redis.setAdd("workers", worker.id) was called
+        }
 
         "informs redis that work has started" in {
             redis.set(startKey, date) was called

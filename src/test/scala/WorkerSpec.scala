@@ -1,6 +1,7 @@
 package test.scala
 import org.specs.Specification
 import org.specs.mock.Mockito
+import org.mockito.Matchers._
 import com.protose.resque._
 import com.protose.resque.Machine._
 import com.protose.resque.FancySeq._
@@ -11,6 +12,7 @@ object WorkerSpec extends Specification with Mockito {
     val resque   = mock[Resque]
     val worker   = new Worker(resque, List("someAwesomeQueue", "someOtherAwesomeQueue"))
     val startKey = List("resque", "worker", worker.id, "started").join(":")
+    val job      = mock[Job]
 
     "it has a string representation" in {
         val expectedId = hostname + ":" + pid + ":" + "someAwesomeQueue,someOtherAwesomeQueue"
@@ -30,6 +32,19 @@ object WorkerSpec extends Specification with Mockito {
 
         "unregisters the worker" in {
             resque.unregister(worker) was called
+        }
+    }
+
+    "working off the next job" in {
+        resque.reserve(worker, "someAwesomeQueue") returns job
+        worker.workNextJob
+
+        "gets the next job from the queue" in {
+            resque.reserve(worker, "someAwesomeQueue") was called
+        }
+
+        "performs the job" in {
+            job.perform was called
         }
     }
 }

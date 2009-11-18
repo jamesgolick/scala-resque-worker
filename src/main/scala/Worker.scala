@@ -13,6 +13,14 @@ class Worker(resque: Resque, queues: List[String]) {
     def stop = {
         resque.unregister(this)
     }
+
+    def workNextJob = {
+        nextJob.perform
+    }
+
+    protected def nextJob = {
+        resque.reserve(this, queues.first)
+    }
 }
 
 // vim: set ts=4 sw=4 et:

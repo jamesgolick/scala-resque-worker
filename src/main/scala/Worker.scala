@@ -12,10 +12,16 @@ class Worker(redis: Redis, queues: List[String]) {
         started
     }
 
-    protected def started         = redis.set(startedKey, new Date().toString)
-    protected def startedKey      = List("worker", id, "started").join(":")
-    protected def addToWorkersSet = redis.setAdd("workers", id)
+    def stop = {
+        removeFromWorkersSet
+        stopped
+    }
 
+    protected def started              = redis.set(startedKey, new Date().toString)
+    protected def startedKey           = List("worker", id, "started").join(":")
+    protected def addToWorkersSet      = redis.setAdd("workers", id)
+    protected def stopped              = redis.delete(startedKey)
+    protected def removeFromWorkersSet = redis.setDelete("workers", id)
 }
 
 // vim: set ts=4 sw=4 et:

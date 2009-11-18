@@ -1,7 +1,11 @@
 package com.protose.resque
 import com.twitter.json.Json
 
-object Job {
+trait JobFactory {
+    def apply(worker: Worker, queue: String, payload: String): Job
+}
+
+object Job extends JobFactory {
     def apply(worker: Worker, queue: String, payload: String): Job = {
         Job(worker, queue, payload, Performable)
     }

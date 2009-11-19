@@ -37,12 +37,7 @@ object WorkerSpec extends Specification with Mockito {
 
     "working off the next job" in {
         "when the job succeeds" in {
-            resque.reserve(worker, "someAwesomeQueue") returns Some(job)
-            worker.workNextJob
-
-            "gets the next job from the queue" in {
-                resque.reserve(worker, "someAwesomeQueue") was called
-            }
+            worker.work(job)
 
             "performs the job" in {
                 job.perform was called
@@ -50,10 +45,9 @@ object WorkerSpec extends Specification with Mockito {
         }
 
         "when the job fails" in {
-            resque.reserve(worker, "someAwesomeQueue") returns Some(job)
             val exception = new NullPointerException("asdf")
             job.perform throws exception
-            worker.workNextJob
+            worker.work(job)
 
             "it registers a failure" in {
                 resque.failure(job, exception) was called

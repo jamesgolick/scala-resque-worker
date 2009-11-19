@@ -3,7 +3,9 @@ import Machine._
 import com.protose.resque.FancySeq._
 import java.util.Date
 
-class Worker(resque: Resque, queues: List[String]) {
+class Worker(resque: Resque, queues: List[String], sleepTime: Int) {
+    def this(resque: Resque, queues: List[String]) = this(resque, queues, 5000)
+
     def id = List(hostname, pid, queues.join(",")).join(":")
 
     def start = {
@@ -14,8 +16,18 @@ class Worker(resque: Resque, queues: List[String]) {
         resque.unregister(this)
     }
 
-    def workNextJob = {
-        val job = nextJob.get
+    def workOff = {
+        while(true) {
+            val job = nextJob
+            if (job.isEmpty) {
+                Thread.sleep(sleepTime)
+            } else {
+                work(job.get)
+            }
+        }
+    }
+
+    def work(job: Job) = {
         try {
             job.perform
         } catch {

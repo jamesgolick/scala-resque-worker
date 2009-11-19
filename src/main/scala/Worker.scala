@@ -38,6 +38,7 @@ class Worker(resque: Resque, queues: List[String], sleepTime: Int) {
     def work(job: Job) = {
         try {
             job.perform
+            resque.success(job)
         } catch {
             case exception: Throwable => resque.failure(job, exception)
         }

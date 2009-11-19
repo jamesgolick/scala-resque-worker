@@ -42,6 +42,10 @@ object WorkerSpec extends Specification with Mockito {
             "performs the job" in {
                 job.perform was called
             }
+
+            "notifies the job of success" in {
+                resque.success(job) was called
+            }
         }
 
         "when the job fails" in {

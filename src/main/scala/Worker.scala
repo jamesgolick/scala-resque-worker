@@ -8,13 +8,20 @@ import net.lag.logging.Logger
 import java.io.File
 
 object Runner {
-    var redisHost = "localhost"
-    var redisPort = 6379
-    var queue     = ""
-    val logger    = Logger.get
+    var redisHost                 = "localhost"
+    var redisPort                 = 6379
+    var queue                     = ""
+    val logger                    = Logger.get
+    var performables: Seq[String] = Array[String]()
+    var performableMap            = Map[String, Performable]()
 
     def main(args: Array[String]) = {
         configure
+        performableMap = performables.foldLeft(performableMap) { (map, path) => 
+            val className = path.split('.').last
+            val instance  = Class.forName(path).newInstance.asInstanceOf[Performable]
+            map + Tuple(className, instance)
+        }
 
         val redis  = new Redis(redisHost, redisPort)
 
@@ -23,7 +30,7 @@ object Runner {
             System.exit(1)
         }
 
-        val resque = new Resque(redis, new JobFactory(Map[String, Performable]()))
+        val resque = new Resque(redis, new JobFactory(performableMap))
         val worker = new Worker(resque, List(queue))
 
         worker.workOff
@@ -40,16 +47,18 @@ object Runner {
             configureFromFile(filename)
         } else { logger.info("No configuration file found. Using defaults.") }
         if (queue == "") attemptToGetQueueFromEnv
+        if (performables.isEmpty) attemptToGetPerformablesFromEnv
 
         logger.info("Listening on " + queue)
     }
 
     protected def configureFromFile(filename: String) = {
         Configgy.configure(filename)
-        var config = Configgy.config
-        redisHost  = config.getString("redis.host", "localhost")
-        redisPort  = config.getInt("redis.port", 6379)
-        queue      = config.getString("queue", "")
+        var config   = Configgy.config
+        redisHost    = config.getString("redis.host", "localhost")
+        redisPort    = config.getInt("redis.port", 6379)
+        queue        = config.getString("queue", "")
+        performables = config.getList("performables")
     }
 
     protected def attemptToGetQueueFromEnv = {
@@ -58,6 +67,15 @@ object Runner {
             logger.critical("Couldn't find any queues to listen on. Exiting...")
             System.exit(1)
         }
+    }
+
+    protected def attemptToGetPerformablesFromEnv = {
+        val possiblePerformables = System.getenv.get("PERFORMABLES")
+        if (possiblePerformables == null) {
+            logger.critical("Couldn't find any performables with which to perform jobs. Exiting...")
+            System.exit(1)
+        }
+        performables = possiblePerformables.split(',')
     }
 }
 

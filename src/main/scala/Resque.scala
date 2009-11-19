@@ -2,6 +2,8 @@ package com.protose.resque
 import com.redis.Redis
 import FancySeq._
 import java.util.Date
+import java.io.{StringWriter, PrintWriter}
+import com.twitter.json.Json
 
 class Resque(val redis: Redis, val jobFactory: JobFactory) {
     def reserve(worker: Worker, name: String): Option[Job] = {
@@ -12,7 +14,17 @@ class Resque(val redis: Redis, val jobFactory: JobFactory) {
         }
     }
 
-    def failure(job: Job, exception: Throwable) = {}
+    def failure(job: Job, exception: Throwable) = {
+        val writer  = new StringWriter
+        val trace   = exception.printStackTrace(new PrintWriter(writer))
+        val failure = Map("failed_at" -> new Date().toString,
+                          "payload"   -> job.payload,
+                          "error"     -> exception.getMessage,
+                          "backtrace" -> trace,
+                          "worker"    -> job.worker.id,
+                          "queue"     -> job.queue)
+        redis.pushTail("resque:failed", Json.build(failure).toString)
+    }
 
     def register(worker: Worker): Unit = {
         addToWorkersSet(worker)

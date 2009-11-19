@@ -6,13 +6,16 @@ import com.redis.Redis
 import FancySeq._
 import java.util.Date
 import java.lang.NullPointerException
+import java.io.StringWriter
+import java.io.PrintWriter
+import com.twitter.json.Json
 
 object ResqueSpec extends Specification with Mockito {
     val redis      = mock[Redis]
     val jobFactory = mock[JobFactory]
-    val job        = Job(worker, "some_queue", "the payload")
     val resque     = new Resque(redis, jobFactory)
     val worker     = new Worker(resque, List("some queue"))
+    val job        = Job(worker, "some_queue", "the payload")
     val startKey   = List("resque", "worker", worker.id, "started").join(":")
 
     "reserving a job" in {
@@ -66,6 +69,25 @@ object ResqueSpec extends Specification with Mockito {
 
         "deletes the started time" in {
             redis.delete(startKey) was called
+        }
+    }
+
+    "registering a failure" in {
+        val exception = new NullPointerException("AHHHH!!!!")
+        val writer    = new StringWriter
+        val backtrace = exception.printStackTrace(new PrintWriter(writer))
+        val failure = Map("failed_at" -> new Date().toString,
+                          "payload"   -> job.payload,
+                          "error"     -> exception.getMessage,
+                          "backtrace" -> backtrace,
+                          "worker"    -> job.worker.id,
+                          "queue"     -> job.queue)
+        val json      = Json.build(failure).toString
+        redis.pushTail("resque:failed", json) returns true
+        resque.failure(job, exception)
+        
+        "jsonifies the data and pushes it on to the failures queue" in {
+            redis.pushTail("resque:failed", json) was called
         }
     }
 }

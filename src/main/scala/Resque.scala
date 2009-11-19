@@ -7,7 +7,9 @@ import com.twitter.json.Json
 class Resque(val redis: Redis, val jobFactory: JobFactory) {
     def reserve(worker: Worker, name: String): Option[Job] = {
         try {
-            Some(jobFactory(worker, name, pop(name)))
+            val job = jobFactory(worker, name, pop(name))
+            setWorkingOn(worker, job)
+            Some(job)
         } catch {
             case e: NullPointerException => return None
         }
@@ -60,6 +62,16 @@ class Resque(val redis: Redis, val jobFactory: JobFactory) {
     }
 
     protected def workerSet = "resque:workers"
+    protected def workerKey(worker: Worker) = {
+        List("resque", worker.id).join(":")
+    }
+
+    protected def setWorkingOn(worker: Worker, job: Job) = {
+        val data = Map("queue"   -> job.queue,
+                       "run_at"  -> new Date().toString,
+                       "payload" -> job.payload)
+        redis.set(workerKey(worker), Json.build(data).toString)
+    }
 }
 
 // vim: set ts=4 sw=4 et:

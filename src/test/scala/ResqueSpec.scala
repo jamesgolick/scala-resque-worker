@@ -30,6 +30,13 @@ object ResqueSpec extends Specification with Mockito {
                 jobFactory.apply(worker, "some_queue", "the payload") was called
                 returnVal must_== job
             }
+
+            "tells redis about the job we're processing" in {
+                val json = Map("queue"   -> "some_queue",
+                               "run_at"  -> new Date().toString,
+                               "payload" -> "the payload")
+                redis.set("resque:" + worker.id, Json.build(json).toString) was called
+            }
         }
 
         "when there is no job" in {

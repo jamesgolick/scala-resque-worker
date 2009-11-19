@@ -1,6 +1,6 @@
 package com.protose.resque
 
-abstract class Performable(val name: String) {
+abstract class Performable {
     def perform(args: List[String]): Unit
 }
 

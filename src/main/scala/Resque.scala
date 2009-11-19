@@ -23,6 +23,8 @@ class Resque(val redis: Redis, val jobFactory: JobFactory) {
                           "worker"    -> job.worker.id,
                           "queue"     -> job.queue)
         redis.pushTail("resque:failed", Json.build(failure).toString)
+        redis.incr(statKey("failed", job.worker))
+        redis.incr(statKey("failed"))
     }
 
     def register(worker: Worker): Unit = {
@@ -65,6 +67,12 @@ class Resque(val redis: Redis, val jobFactory: JobFactory) {
     protected def workerKey(worker: Worker) = {
         List("resque", worker.id).join(":")
     }
+
+    protected def statKey(status: String, worker: Worker) = {
+        List("resque", "stat", status, worker.id).join(":")
+    }
+
+    protected def statKey(status: String) = List("resque", "stat", status).join(":")
 
     protected def setWorkingOn(worker: Worker, job: Job) = {
         val data = Map("queue"   -> job.queue,

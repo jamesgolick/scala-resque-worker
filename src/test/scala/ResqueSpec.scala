@@ -93,6 +93,14 @@ object ResqueSpec extends Specification with Mockito {
         "jsonifies the data and pushes it on to the failures queue" in {
             redis.pushTail("resque:failed", json) was called
         }
+
+        "increments the failures for this worker" in {
+            redis.incr("resque:stat:failed:" + worker.id) was called
+        }
+
+        "increments the overall failure stats" in {
+            redis.incr("resque:stat:failed") was called
+        }
     }
 }
 

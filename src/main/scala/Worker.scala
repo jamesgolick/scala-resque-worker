@@ -17,6 +17,7 @@ class Worker(resque: Resque, queues: List[String], sleepTime: Int) {
     }
 
     def workOff = {
+        start
         while(true) {
             val job = nextJob
             if (job.isEmpty) {
@@ -25,6 +26,7 @@ class Worker(resque: Resque, queues: List[String], sleepTime: Int) {
                 work(job.get)
             }
         }
+        stop
     }
 
     def work(job: Job) = {

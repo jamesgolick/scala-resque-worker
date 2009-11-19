@@ -57,6 +57,6 @@ This is my first open source scala project. I'm pretty noobish still, so I'd lov
 License
 ------
 
-scala-resque-worker is copyright (c) 2009 James Golick, written for use at FetLife.com (NSFW), released under the terms of the MIT LICENSE. See the LICENSE file for details.
+scala-resque-worker is copyright (c) 2009 James Golick, written for use at FetLife.com (NSFW), released under the terms of the MIT License. See the LICENSE file for details.
 
 

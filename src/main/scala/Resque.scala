@@ -9,7 +9,6 @@ class Resque(val redis: Redis, val jobFactory: JobFactory) {
         try {
             val job = jobFactory(worker, name, pop(name))
             setWorkingOn(worker, job)
-            Thread.sleep(1000000)
             Some(job)
         } catch {
             case e: NullPointerException => return None

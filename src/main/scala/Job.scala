@@ -1,24 +1,22 @@
 package com.protose.resque
 import com.twitter.json.Json
 
-trait JobFactory {
-    def apply(worker: Worker, queue: String, payload: String): Job
-}
-
-object Job extends JobFactory {
+class JobFactory(performableMap: Map[String, Performable]) {
     def apply(worker: Worker, queue: String, payload: String): Job = {
-        Job(worker, queue, payload, Performable)
+        Job(worker, queue, payload, performableMap)
     }
 }
 
 case class Job(worker: Worker, queue: String,
-               payload: String, performerFinder: { 
-                   def apply(s: String): Performable }) {
+               payload: String, performableMap: Map[String, Performable]) {
     def perform = {
         performer.perform(parsedPayload("args").asInstanceOf[List[String]])
     }
 
-    def performer: Performable = performerFinder(parsedPayload("class"))
+    def performer: Performable = {
+        performableMap(parsedPayload("class"))
+    }
+
     def parsedPayload: Map[String, String] =
         Json.parse(payload).asInstanceOf[Map[String, String]]
 }

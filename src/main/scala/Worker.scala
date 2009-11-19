@@ -23,7 +23,7 @@ object Runner {
             System.exit(1)
         }
 
-        val resque = new Resque(redis, Job)
+        val resque = new Resque(redis, new JobFactory(Map[String, Performable]()))
         val worker = new Worker(resque, List(queue))
 
         worker.workOff

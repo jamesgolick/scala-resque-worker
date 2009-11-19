@@ -11,8 +11,7 @@ object JobSpec extends Specification with Mockito {
     val performable     = new Performable("Something") { 
         def perform(args: List[String]) = {}
     }
-    val performerFinder = (s: String) => { performable }
-    val job             = Job(worker, queue, Json.build(payload).toString, performerFinder)
+    val job             = Job(worker, queue, Json.build(payload).toString, Map("SomeAwesomeJob" -> performable))
 
     "performing a job" in {
         job.perform

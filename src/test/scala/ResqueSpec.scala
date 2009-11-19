@@ -13,7 +13,7 @@ object ResqueSpec extends Specification with Mockito {
     val jobFactory = mock[JobFactory]
     val resque     = new Resque(redis, jobFactory)
     val worker     = new Worker(resque, List("some queue"))
-    val job        = Job(worker, "some_queue", "{}")
+    val job        = Job(worker, "some_queue", "{}", Map[String, Performable]())
     val startKey   = List("resque", "worker", worker.id, "started").join(":")
 
     "reserving a job" in {

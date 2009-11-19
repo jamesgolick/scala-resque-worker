@@ -49,6 +49,11 @@ There's an example config file in the examples directory.
 
 The config is setup using Configgy (http://www.lag.net/configgy/). So, you can use Configgy.config from your Performables to get additional config parameters.
 
+TODO
+----
+
+It should probably use actors for some concurrency. Currently, it processes one job at a time.
+
 Patches
 -------
 

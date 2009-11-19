@@ -34,7 +34,7 @@ object ResqueSpec extends Specification with Mockito {
             "tells redis about the job we're processing" in {
                 val json = Map("queue"   -> "some_queue",
                                "run_at"  -> new Date().toString,
-                               "payload" -> "{}")
+                               "payload" -> Map[String, String]())
                 redis.set("resque:worker:" + worker.id, Json.build(json).toString) was called
             }
         }

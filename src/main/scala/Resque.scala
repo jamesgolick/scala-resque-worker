@@ -82,7 +82,7 @@ class Resque(val redis: Redis, val jobFactory: JobFactory) {
     protected def setWorkingOn(worker: Worker, job: Job) = {
         val data = Map("queue"   -> job.queue,
                        "run_at"  -> new Date().toString,
-                       "payload" -> job.payload)
+                       "payload" -> job.parsedPayload)
         redis.set(workerKey(worker), Json.build(data).toString)
     }
 }

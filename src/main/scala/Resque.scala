@@ -9,6 +9,7 @@ class Resque(val redis: Redis, val jobFactory: JobFactory) {
         try {
             val job = jobFactory(worker, name, pop(name))
             setWorkingOn(worker, job)
+            Thread.sleep(1000000)
             Some(job)
         } catch {
             case e: NullPointerException => return None
@@ -70,7 +71,7 @@ class Resque(val redis: Redis, val jobFactory: JobFactory) {
 
     protected def workerSet = "resque:workers"
     protected def workerKey(worker: Worker) = {
-        List("resque", worker.id).join(":")
+        List("resque", "worker", worker.id).join(":")
     }
 
     protected def statKey(status: String, worker: Worker) = {

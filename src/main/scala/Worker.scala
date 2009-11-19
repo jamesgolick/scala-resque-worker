@@ -17,6 +17,12 @@ object Runner {
         configure
 
         val redis  = new Redis(redisHost, redisPort)
+
+        if (!redis.connected) {
+            logger.critical("Couldn't connect to redis server at: " + redisHost + ":" + redisPort)
+            System.exit(1)
+        }
+
         val resque = new Resque(redis, Job)
         val worker = new Worker(resque, List(queue))
 

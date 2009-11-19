@@ -46,13 +46,13 @@ class Worker(resque: Resque, queues: List[String], sleepTime: Int) {
 
     protected def runInfiniteJobLoop: Unit = {
         while(true) {
+            if (exit) { return }
             val job = nextJob
             if (job.isEmpty) {
                 Thread.sleep(sleepTime)
             } else {
                 work(job.get)
             }
-            if (exit) { return }
         }
     }
 
@@ -61,8 +61,12 @@ class Worker(resque: Resque, queues: List[String], sleepTime: Int) {
     }
 
     protected def catchShutdown = {
+        val thread = Thread.currentThread
         Runtime.getRuntime.addShutdownHook(new Thread() {
-            override def run = exit = true
+            override def run = {
+                exit = true
+                thread.join
+            }
         })
     }
 }

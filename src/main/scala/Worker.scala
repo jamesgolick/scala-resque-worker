@@ -3,13 +3,55 @@ import Machine._
 import com.protose.resque.FancySeq._
 import java.util.Date
 import com.redis.Redis
+import net.lag.configgy.Configgy
+import net.lag.logging.Logger
+import java.io.File
 
 object Runner {
+    var redisHost = "localhost"
+    var redisPort = 6379
+    var queue     = ""
+    val logger    = Logger.get
+
     def main(args: Array[String]) = {
-        val redis  = new Redis
+        configure
+
+        val redis  = new Redis(redisHost, redisPort)
         val resque = new Resque(redis, Job)
-        val worker = new Worker(resque, List("activity_feed"))
+        val worker = new Worker(resque, List(queue))
+
         worker.workOff
+    }
+
+    protected def configure = {
+        val envVar   = System.getenv.get("CONFIG")
+        val filename = if (envVar == null) "/etc/resque.conf"
+                       else envVar
+        var file     = new File(filename)
+
+        if (file.exists) {
+            logger.info("Found configuration file at " + filename)
+            configureFromFile(filename)
+        } else { logger.info("No configuration file found. Using defaults.") }
+        if (queue == "") attemptToGetQueueFromEnv
+
+        logger.info("Listening on " + queue)
+    }
+
+    protected def configureFromFile(filename: String) = {
+        Configgy.configure(filename)
+        var config = Configgy.config
+        redisHost  = config.getString("redis.host", "localhost")
+        redisPort  = config.getInt("redis.port", 6379)
+        queue      = config.getString("queue", "")
+    }
+
+    protected def attemptToGetQueueFromEnv = {
+        queue = System.getenv.get("QUEUE")
+        if (queue == null) {
+            logger.critical("Couldn't find any queues to listen on. Exiting...")
+            System.exit(1)
+        }
     }
 }
 

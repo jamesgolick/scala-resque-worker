@@ -56,7 +56,8 @@ object Runner {
 }
 
 class Worker(resque: Resque, queues: List[String], sleepTime: Int) {
-    var exit = false
+    var exit   = false
+    val logger = Logger.get
 
     def this(resque: Resque, queues: List[String]) = this(resque, queues, 5000)
 
@@ -64,9 +65,11 @@ class Worker(resque: Resque, queues: List[String], sleepTime: Int) {
 
     def start = {
         resque.register(this)
+        logger.info("Started worker " + id)
     }
 
     def stop = {
+        logger.info("Shutting down worker " + id)
         resque.unregister(this)
     }
 
@@ -91,6 +94,7 @@ class Worker(resque: Resque, queues: List[String], sleepTime: Int) {
             if (exit) { return }
             val job = nextJob
             if (job.isEmpty) {
+                logger.debug("No jobs found. Sleeping for " + sleepTime + "ms.")
                 Thread.sleep(sleepTime)
             } else {
                 work(job.get)

@@ -85,7 +85,7 @@ class Worker(resque: Resque, queues: List[String], sleepTime: Int) {
             job.perform
             resque.success(job)
         } catch {
-            case exception: Throwable => resque.failure(job, exception)
+            case exception: Throwable => failure(job, exception)
         }
     }
 
@@ -114,6 +114,11 @@ class Worker(resque: Resque, queues: List[String], sleepTime: Int) {
                 thread.join
             }
         })
+    }
+
+    protected def failure(job: Job, exception: Throwable) = {
+        logger.debug(exception, "Failed to process job with exception.")
+        resque.failure(job, exception)
     }
 }
 

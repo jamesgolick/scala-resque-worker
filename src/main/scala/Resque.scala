@@ -27,6 +27,11 @@ class Resque(val redis: Redis, val jobFactory: JobFactory) {
         redis.incr(statKey("failed"))
     }
 
+    def success(job: Job) = {
+        redis.incr(statKey("processed", job.worker))
+        redis.incr(statKey("processed"))
+    }
+
     def register(worker: Worker): Unit = {
         addToWorkersSet(worker)
         setStartedTime(worker)

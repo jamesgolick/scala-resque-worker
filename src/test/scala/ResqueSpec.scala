@@ -102,6 +102,18 @@ object ResqueSpec extends Specification with Mockito {
             redis.incr("resque:stat:failed") was called
         }
     }
+
+    "registering success" in {
+        resque.success(job)
+
+        "increments the processed for this worker" in {
+            redis.incr("resque:stat:processed:" + worker.id) was called
+        }
+
+        "increments the overall processed stats" in {
+            redis.incr("resque:stat:processed") was called
+        }
+    }
 }
 
 // vim: set ts=4 sw=4 et:

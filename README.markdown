@@ -6,25 +6,25 @@ Resque is the awesome queue system written by the github guys. It is a very poli
 How it Works
 ------------
 
-To write the code that runs a job, you need to create an object that inherits from com.protose.resque.Performable:
+To write the code that runs a job, you need to create an object that inherits from com.protose.resque.Performable. Note that the performable must have a 0-args constructor:
 
     import com.protose.resque.Performable
 
-    object myAwesomeJob extends Performable("MyJobName") {
+    class MyAwesomeJob extends Performable {
       override def perform(args: List[String]) = println("I did something awesome with " + args)
     }
 
-The string that you pass to Performable is the name of your job. When you queue up the job (presumably from ruby code), that name is what you need to use to make sure your Performable is found. In this example, that would like something like this:
+The name of your class (minus package) is how your performable will be identified. When you queue it up (presumably from ruby code), that name is what you need to use to make sure your Performable is found. In this example, that would like something like this:
 
     ## this is ruby code
     
-    class MyJobName
+    class MyAwesomeJob
       @queue = :my_queue
     end
 
-    Resque.enqueue(MyJobName, "some arg")
+    Resque.enqueue(MyAwesomeJob, "some arg")
 
-Note that the MyJobName ruby class doesn't have a self.perform method. It doesn't need one, because it's really just a placeholder for your scala job which does the actual work.
+Note that the MyAwesomeJob ruby class doesn't have a self.perform method. It doesn't need one, because it's really just a placeholder for your scala job which does the actual work.
 
 Gotchas
 -------
@@ -37,13 +37,14 @@ Running It
 
 Grab the latest jar from the Downloads section, and all the dependencies from lib and create some kind of script to setup all the classpath nonsense and stuff. Once you have that, you can either put a config file in /etc/resque.conf or use the CONFIG environment variable to point to a custom location. If you don't provide a config file, it'll assume that redis is running locally.
 
-In the config file, there are currently three parameters:
+In the config file, there are currently four parameters:
 
-  redis.host = "some.host"
-  redis.port = 12345
-  queue      = "the queue to listen on"
+  redis.host   = "some.host"
+  redis.port   = 12345
+  queue	       = "the queue to listen on"
+  performables = ["com.myco.MyJob"]
 
-You can also set the queue with the QUEUE environment variable.
+You can also set the queue with the QUEUE environment variable, and the performables with the PERFORMABLES env var. Performables must be a comma separated list of full paths to your performable classes.
 
 There's an example config file in the examples directory.
 

@@ -8,21 +8,21 @@ How it Works
 
 To write the code that runs a job, you need to create an object that inherits from com.protose.resque.Performable:
 
-  import com.protose.resque.Performable
+    import com.protose.resque.Performable
 
-  object myAwesomeJob extends Performable("MyJobName") {
-    override def perform(args: List[String]) = println("I did something awesome with " + args)
-  }
+    object myAwesomeJob extends Performable("MyJobName") {
+      override def perform(args: List[String]) = println("I did something awesome with " + args)
+    }
 
 The string that you pass to Performable is the name of your job. When you queue up the job (presumably from ruby code), that name is what you need to use to make sure your Performable is found. In this example, that would like something like this:
 
-  ## this is ruby code
-  
-  class MyJobName
-    @queue = :my_queue
-  end
+    ## this is ruby code
+    
+    class MyJobName
+      @queue = :my_queue
+    end
 
-  Resque.enqueue(MyJobName, "some arg")
+    Resque.enqueue(MyJobName, "some arg")
 
 Note that the MyJobName ruby class doesn't have a self.perform method. It doesn't need one, because it's really just a placeholder for your scala job which does the actual work.
 

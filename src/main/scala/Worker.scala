@@ -69,7 +69,6 @@ class Worker(resque: Resque, queues: List[String], sleepTime: Int) {
     }
 
     def stop = {
-        logger.info("Shutting down worker " + id)
         resque.unregister(this)
     }
 

@@ -17,7 +17,7 @@ class Resque(val redis: Redis, val jobFactory: JobFactory) {
 
     def failure(job: Job, exception: Throwable) = {
         val failure = Map("failed_at" -> new Date().toString,
-                          "payload"   -> job.payload,
+                          "payload"   -> job.parsedPayload,
                           "error"     -> exception.getMessage,
                           "backtrace" -> exception.getStackTrace.map { s => s.toString },
                           "worker"    -> job.worker.id,

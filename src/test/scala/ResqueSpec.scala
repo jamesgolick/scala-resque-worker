@@ -13,28 +13,28 @@ object ResqueSpec extends Specification with Mockito {
     val jobFactory = mock[JobFactory]
     val resque     = new Resque(redis, jobFactory)
     val worker     = new Worker(resque, List("some queue"))
-    val job        = Job(worker, "some_queue", "the payload")
+    val job        = Job(worker, "some_queue", "{}")
     val startKey   = List("resque", "worker", worker.id, "started").join(":")
 
     "reserving a job" in {
         "when there is a job" in {
-            redis.popHead("resque:queue:some_queue") returns "the payload"
-            jobFactory.apply(worker, "some_queue", "the payload") returns job
+            redis.popHead("resque:queue:some_queue") returns "{}"
+            jobFactory.apply(worker, "some_queue", "{}") returns job
             val returnVal = resque.reserve(worker, "some_queue").get
 
             "fetches the next payload from the queue" in {
                 redis.popHead("resque:queue:some_queue") was called
             }
 
-            "returns the job created with the payload" in {
-                jobFactory.apply(worker, "some_queue", "the payload") was called
+            "returns the job created with {}" in {
+                jobFactory.apply(worker, "some_queue", "{}") was called
                 returnVal must_== job
             }
 
             "tells redis about the job we're processing" in {
                 val json = Map("queue"   -> "some_queue",
                                "run_at"  -> new Date().toString,
-                               "payload" -> "the payload")
+                               "payload" -> "{}")
                 redis.set("resque:worker:" + worker.id, Json.build(json).toString) was called
             }
         }
@@ -80,8 +80,9 @@ object ResqueSpec extends Specification with Mockito {
     "registering a failure" in {
         val exception = new NullPointerException("AHHHH!!!!")
         val trace     = exception.getStackTrace.map { s => s.toString}
+        val payload   = job.parsedPayload
         val failure = Map("failed_at" -> new Date().toString,
-                          "payload"   -> job.payload,
+                          "payload"   -> payload,
                           "error"     -> exception.getMessage,
                           "backtrace" -> trace,
                           "worker"    -> job.worker.id,

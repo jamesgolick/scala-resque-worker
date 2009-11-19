@@ -6,8 +6,6 @@ import com.redis.Redis
 import FancySeq._
 import java.util.Date
 import java.lang.NullPointerException
-import java.io.StringWriter
-import java.io.PrintWriter
 import com.twitter.json.Json
 
 object ResqueSpec extends Specification with Mockito {
@@ -74,12 +72,11 @@ object ResqueSpec extends Specification with Mockito {
 
     "registering a failure" in {
         val exception = new NullPointerException("AHHHH!!!!")
-        val writer    = new StringWriter
-        val backtrace = exception.printStackTrace(new PrintWriter(writer))
+        val trace     = exception.getStackTrace.map { s => s.toString}
         val failure = Map("failed_at" -> new Date().toString,
                           "payload"   -> job.payload,
                           "error"     -> exception.getMessage,
-                          "backtrace" -> backtrace,
+                          "backtrace" -> trace,
                           "worker"    -> job.worker.id,
                           "queue"     -> job.queue)
         val json      = Json.build(failure).toString

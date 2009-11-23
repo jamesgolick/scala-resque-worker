@@ -102,6 +102,10 @@ object ResqueSpec extends Specification with Mockito {
         "increments the overall failure stats" in {
             redis.incr("resque:stat:failed") was called
         }
+
+        "tells redis we're not workign on the job anymore" in {
+            redis.delete("resque:worker:" + worker.id) was called
+        }
     }
 
     "registering success" in {
@@ -113,6 +117,10 @@ object ResqueSpec extends Specification with Mockito {
 
         "increments the overall processed stats" in {
             redis.incr("resque:stat:processed") was called
+        }
+
+        "tells redis we're not workign on the job anymore" in {
+            redis.delete("resque:worker:" + worker.id) was called
         }
     }
 }

@@ -25,11 +25,13 @@ class Resque(val redis: Redis, val jobFactory: JobFactory) {
         redis.pushTail("resque:failed", Json.build(failure).toString)
         redis.incr(statKey("failed", job.worker))
         redis.incr(statKey("failed"))
+        deleteWorkingOn(job.worker)
     }
 
     def success(job: Job) = {
         redis.incr(statKey("processed", job.worker))
         redis.incr(statKey("processed"))
+        deleteWorkingOn(job.worker)
     }
 
     def register(worker: Worker): Unit = {
@@ -84,6 +86,10 @@ class Resque(val redis: Redis, val jobFactory: JobFactory) {
                        "run_at"  -> new Date().toString,
                        "payload" -> job.parsedPayload)
         redis.set(workerKey(worker), Json.build(data).toString)
+    }
+
+    protected def deleteWorkingOn(worker: Worker) = {
+        redis.delete(workerKey(worker))
     }
 }
 
